@@ -12,11 +12,17 @@ import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Toggle;
 import javafx.scene.control.Alert; 
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.io.FileWriter;
+import java.io.BufferedWriter;
+import java.io.PrintWriter;
+import java.io.IOException;
+import javafx.scene.input.MouseEvent;
 /**
  *
  * @author lynne
@@ -64,6 +70,21 @@ public class Assign2 extends Application {
 
         Button quitBtn = new Button("Quit");
         quitBtn.setStyle("-fx-background-color: #add8e6;");
+        
+        //when mouse is hovering over the quit btn
+        quitBtn.setOnMouseEntered(new EventHandler<MouseEvent>(){
+            @Override
+            public void handle(MouseEvent event){
+                quitBtn.setStyle("-fx-background-color: #c9eaf5");
+            }
+        });
+        //when mouse is no longer hovering over quit btn
+        quitBtn.setOnMouseExited(new EventHandler<MouseEvent>(){
+            @Override
+            public void handle(MouseEvent event){
+                quitBtn.setStyle("-fx-background-color: #add8e6");
+            }
+        });
 
         quitBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -74,6 +95,77 @@ public class Assign2 extends Application {
 
         Button saveBtn = new Button("Save");
         saveBtn.setStyle("-fx-background-color: #add8e6;");
+        
+         //when mouse hovers over save btn
+        saveBtn.setOnMouseEntered(new EventHandler<MouseEvent>(){
+            @Override
+            public void handle(MouseEvent event){
+                saveBtn.setStyle("-fx-background-color: #c9eaf5");
+            }
+        });
+        //when mouse is no longer hovering over save btn
+        saveBtn.setOnMouseExited(new EventHandler<MouseEvent>(){
+            @Override
+            public void handle(MouseEvent event){
+                saveBtn.setStyle("-fx-background-color: #add8e6");
+            }
+        });
+        
+        saveBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                // Read user inputs
+                String customerName = name.getText().trim();
+                String phoneNumber = phone.getText().trim();
+                String cakeType = comboBox.getValue();
+                Toggle selectedSize = sizeGroup.getSelectedToggle();
+                String cakeSize = (selectedSize == null) ? null : ((RadioButton) selectedSize).getText();
+                boolean freeDelivery = deliveryCheck.isSelected();
+
+                // Validate inputs
+                if (customerName.isEmpty() || phoneNumber.isEmpty() || cakeType == null || cakeSize == null) {
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("Missing Information");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Please fill out all fields before saving.");
+                    alert.showAndWait();
+                    return;
+                }
+
+                // Create order text
+                String deliveryText = freeDelivery ? "Yes" : "No";
+                String orderLine = customerName + " | " + phoneNumber + " | " + cakeType + " | " + cakeSize + " | Delivery: " + deliveryText;
+
+                // Save to Orders.txt
+                try (FileWriter fw = new FileWriter("Orders.txt", true);
+                     BufferedWriter bw = new BufferedWriter(fw);
+                     PrintWriter out = new PrintWriter(bw)) {
+                    out.println(orderLine);
+
+                    // Order saved alert
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Saved");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Order saved to Orders.txt!");
+                    alert.showAndWait();
+
+                    // Resets form for next order
+                    name.clear();
+                    phone.clear();
+                    comboBox.getSelectionModel().clearSelection();
+                    sizeGroup.selectToggle(null);
+                    deliveryCheck.setSelected(false);
+
+                } catch (IOException e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Error");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Failed to save the order file.");
+                    alert.showAndWait();
+                    e.printStackTrace();
+                }
+            }
+        });
 
         HBox hname = new HBox(15, lname, name);
         HBox hphone = new HBox(15, lphone, phone);
